@@ -1,0 +1,7 @@
+*.nc
+/.spyproject
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.RDataTmp
