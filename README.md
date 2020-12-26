@@ -14,6 +14,8 @@ Modules for the following sensors can be found here.
 
 
 **Sea-Bird Scientific ECO Triplet-w**
+
 **Sea-Bird Scientific ECO PAR**
-**Sea-Bird Scientific Thetis Profiler***
+
+**Sea-Bird Scientific Thetis Profiler**
 
