@@ -4,13 +4,13 @@
 #Implement catch for "unrecognized command".
 
 import datetime
-from martech.rs232 import RS232 
+from martech.sercom import SERCOM 
 import re
 import time
 
 class PAR():
     def __init__(self,port):
-        self.rs232 = RS232()
+        self.rs232 = SERCOM()
         self.port = port
         self.bytesize = 8
         self.parity = 'N'

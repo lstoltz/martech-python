@@ -5,3 +5,5 @@
 .RData
 .Ruserdata
 .RDataTmp
+/__pycache__
+*.pyc

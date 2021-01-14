@@ -1,17 +1,26 @@
 # martech-python
-martech-python is a set of modules that I regularly use to perform quality conformance tests on sensors and packages received from vendors after servicing.
+martech-python is a set of modules for communicating with OOI sensors over RS232.
 
 
 ## Dependencies
-The only non-native Python 3 package that is utilized by these modules is PySerial.
+Every module heavily depends on the PySerial package.
 To install PySerial...
 
 `pip install pyserial`
 
-## Sensors
+
+
+The martech.sbs.suna module requires use of the XMODEM package if transferring datafiles.
+To install XMODEM...
+
+`pip install xmodem`
+
+
+## Sensors in Development
 
 Modules for the following sensors can be found here.
 
+### Sea-Bird Scientific (including WETLabs and Satlantic)
 
 **Sea-Bird Scientific ECO Triplet-w**
 
@@ -19,3 +28,13 @@ Modules for the following sensors can be found here.
 
 **Sea-Bird Scientific Thetis Profiler**
 
+**Sea-Bird Scientific SBE49 FastCAT CTD**
+
+### Xylem (including Aanderaa)
+
+**Xylem/Aanderaa Oxygen Optode 4831**
+
+
+### Nortek
+
+**Nortek Aquadopp**
