@@ -4,6 +4,7 @@ Author(s): Ian Black
 2020-12-13: Initial commit.
 2021-01-13: Changed class name from RS232 to SERCOM to prevent confusion when
             using RS485. Implemented user defined check time for read_response.
+2021-01-24: Removed connect/disconnect messages because they were annoying.
 '''
 import serial
 import time
@@ -24,19 +25,15 @@ class SERCOM():
         self.sercom.xonxoff = flowcontrol
         try:
             self.sercom.open()
-            print('Connected!')
             return True
         except:
-            print('Unable to connect!')
             return False
 
     def disconnect(self):
         try:
             self.sercom.close()
-            print('Disconnected!')
             return True
         except:
-            print('Unable to disconnect!')
             return False
 
     def clear_buffers(self):
@@ -69,6 +66,7 @@ class SERCOM():
                 break
             else:
                 if (end-start) > 30:
+                    print('Forced serial read timeout.')
                     break
                 buffer = incoming
                 time.sleep(check)    
@@ -76,4 +74,3 @@ class SERCOM():
     def read_until_byte_string(self,byte_string):
         incoming = self.sercom.read_until(byte_string).decode()
         return incoming
-    
