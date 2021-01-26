@@ -8,8 +8,8 @@ class OPTODE4831():
         self.bytesize = 8
         self.parity = 'N'
         self.stopbits = 1
-        self.flowcontrol = 0
-        self.timeout = 3          
+        self.flowcontrol = True
+        self.timeout = 1     
     
     def open_connection(self,baudrate=115200):
         self.baudrate = baudrate        
@@ -27,22 +27,23 @@ class OPTODE4831():
         while True:
             self.rs232.write_command("STOP",EOL='\r\n')
             self.rs232.write_command("",EOL='\r\n')
-            self.rs232.write_command("",EOL='\r\n')
             response = self.rs232.read_response()
             if "#" in response:
-                self.rs232.write_command("",EOL='\r\n')
-                self.rs232.write_command("",EOL='\r\n')
+                self._force_new_command_prompt()
+                self.rs232.read_response()
                 self.rs232.clear_buffers()
                 return True
             else:
                 continue
     
     def get_settings(self):
-        self.rs232.write_command("",EOL='\r\n')
-        self.rs232.clear_buffers()
-        self.rs232.write_command("GET ALL",EOL='\r\n')
-        response = self.rs232.read_response()
-        return response
+        while True:
+            self.rs232.write_command('get\sall',EOL='\n')
+            response = self.rs232.read_response()
+            if 'ERROR' in response:
+                continue
+            else:
+                return response
 
     def exit_passthru(self): 
         """This is a SBS Thetis Profiler specific command."""
@@ -52,3 +53,16 @@ class OPTODE4831():
             return True
         else:
             return False
+    
+    def get_cal_date(self):
+        self.rs232.write_command('get\slast\scalibration')
+        while True:
+            response = self.rs232.read_response()
+            if 'ERROR' in response:
+                continue
+            else:
+                return response
+    
+    def _force_new_command_prompt(self):
+        for i in range(3):
+            self.rs232.write_command("",EOL='\r\n')

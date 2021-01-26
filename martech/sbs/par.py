@@ -165,8 +165,7 @@ class PAR():
         else:
             print('Failure to erase memory!')
             return False
-        
-  
+         
     def log_data(self,state="ON"):
         if state == "ON":
             val = 1
@@ -225,3 +224,4 @@ class PAR():
         response = self.rs232.read_response()
         if 'etx' in response:
             print(response)
+        return response

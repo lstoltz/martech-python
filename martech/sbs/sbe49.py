@@ -25,8 +25,7 @@ class SBE49():
 
     def stop_sampling(self):
         self.rs232.write_command("STOP")
-        self.rs232.write_command("")
-        self.rs232.write_command("")
+        self._force_new_command_prompt()
         time.sleep(1)
         response = self.rs232.read_response()
         self.rs232.clear_buffers()
@@ -53,3 +52,7 @@ class SBE49():
             return True
         else:
             return False        
+
+    def _force_new_command_prompt(self):
+        for i in range(3):
+            self.rs232.write_command("",EOL='\r\n')
