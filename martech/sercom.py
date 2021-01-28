@@ -5,6 +5,7 @@ Author(s): Ian Black
 2021-01-13: Changed class name from RS232 to SERCOM to prevent confusion when
             using RS485. Implemented user defined check time for read_response.
 2021-01-24: Removed connect/disconnect messages because they were annoying.
+2021-01-26: Added check to read_response.
 '''
 import serial
 import time
@@ -50,7 +51,7 @@ class SERCOM():
         return data
     
     def read_response(self,check=0.1):
-        data = self.read_bytes()
+        data = self.read_bytes(check)
         response = data.decode()
         return response
     
