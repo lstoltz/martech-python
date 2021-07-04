@@ -3,7 +3,7 @@ This is a standalone script intended for deployment on a Raspberry Pi as a
 command line utility.
 
 Example Usage: 
-    python3 /home/pi/martech-python/examples/bluefin/balance.py COM11 2
+    python3 /home/pi/martech-python/examples/bluefin/balance.py /dev/ttyUSB0 2
         where "/dev/ttyUSB0" is the known port 
         and "2" is the known battery address.
 
