@@ -68,9 +68,11 @@ class THETIS():
         dt_pro = datetime.datetime.strptime(dt_pro,'%m/%d/%YT%H:%M:%S')
         dt_pro_str = datetime.datetime.strftime(dt_pro,'%Y%m%d%H%M%S')
         if dt_pro_str == now_str:
-            return True
+            msg = 'Datetime Set: PASS'
+            return True,msg
         else:
-            return False
+            msg = 'Datetime Set: FAIL'
+            return False, msg
 
     def get_version(self):
         info = {}
@@ -106,10 +108,11 @@ class THETIS():
         if 'MKD*' in response:
             msg='New directory located at {}/{}.'.format(listener,directory_id)
             print(msg)
+            return True
         elif 'NAK,2,MKD' in response:
             msg = 'Directory already exists!'
             print(msg)
-            return 
+            return True
         else:
             return False
 
@@ -118,9 +121,8 @@ class THETIS():
         time.sleep(0.5)
         response = self.rs232.read_response()
         if 'CD,1,\{}*'.format(directory_id) in response or 'CD,1,*' in response:
-            msg = 'Moving to {}/{}.'.format(listener,directory_id)
-            print(msg)        
-            return directory_id
+            msg = 'Working Directory: {}/{}.'.format(listener,directory_id)       
+            return directory_id, msg
         elif 'NAK,2,CD,C' in response:
             print('No subdirectory found.')
             return False
@@ -141,29 +143,30 @@ class THETIS():
 
     def set_breakaway_depth(self,value=0.70):
         value = float(value)
-        self.bd = value
         self.rs232.write_command('$PWETC,PC,,,,BD,1,{}*'.format(value))       
         response = self.rs232.read_response()
         pattern = '\$PWETA,.*?,.*?,.*?,.*?,.*?,.*?,(.*?)\*'
         returned_val = float(re.findall(pattern,response).pop())
         if returned_val == value:
-            return True
+            msg = "BD Set: PASS | Value = {}".format(value)
+            return True,msg
         else:
-            return False        
+            msg = "BD Set: FAIL"
+            return False,msg        
         
     def turn_off_wave_height_estimator(self):
-        self.whs = 'OFF'
         self.rs232.write_command('$PWETC,PC,,,,WHS,1,0*03')
         response = self.rs232.read_response()
         pattern = '\$PWETA,.*?,.*?,.*?,.*?,.*?,.*?,(.*?),.*?,.*?,.*?\*'
         state = int(re.findall(pattern,response).pop())
         if state == 0:
-            return True
+            msg = "WHE OFF: PASS"
+            return True,msg
         else: 
-            return False
+            msg = "WHE OFF: FAIL"
+            return False,msg
 
     def set_hld(self,mode=1):
-        self.hld = mode
         if int(mode) == 1:
             self.rs232.write_command('$PWETC,PC,,,,HLD,1,1*0E')
         elif int(mode) == 0:
@@ -172,24 +175,26 @@ class THETIS():
         pattern = '\$PWETA,.*?,.*?,.*?,.*?,.*?,.*?,(.*?)\*'
         val = int(re.findall(pattern,response).pop())
         if val == mode:
-            return True
+            msg = "HLD Set: PASS | Value = {}".format(mode)
+            return True,msg
         else:
-            return False       
+            msg = "HLD Set: FAIL"
+            return False,msg       
     
     def set_parking_depth(self,value):
         value = float(value)
-        self.pkd = value
         self.rs232.write_command('$PWETC,PC,,,,PKD,1,{}*'.format(value))
         response = self.rs232.read_response()
         pattern = '\$PWETA,.*?,.*?,.*?,.*?,.*?,.*?,(.*?)\*'
         returned_val = float(re.findall(pattern,response).pop())
         if returned_val == value:
-            return True
+            msg = "PKD Set: PASS | Value = {}".format(value)
+            return True,msg
         else:
-            return False    
+            msg = "PKD Set: FAIL"
+            return False,msg    
     
     def set_sta(self,value=0.7):
-        self.sta = 0.7
         self.rs232.write_command('$PWETC,WC,,,,STA,1,{}*'.format(value))
         response = self.rs232.read_response()
         pattern = '\$PWETA,.*?,.*?,.*?,.*?,.*?,.*?,(.*?)\*'
@@ -202,25 +207,27 @@ class THETIS():
         else:
             amps = float(re.findall(pattern,response).pop())
         if amps < value - 0.01:
-            return False
+            msg = "STA Set: FAIL"
+            return False,msg
         elif amps == value or amps + 0.01 == value:
-            return True    
+            msg = "STA Set: PASS | Value = {}".format(amps)
+            return True,msg
 
     def set_profile_number(self,value=0):
         value = int(value)
-        self.num = value
         self.rs232.write_command('$PWETC,PC,,,,num,1,{}*'.format(int(value)))
         response = self.rs232.read_response()
         pattern = '\$PWETA,.*?,.*?,.*?,.*?,.*?,.*?,(.*?)\*'
         returned_val = int(re.findall(pattern,response).pop())
         if returned_val == value:
-            return True
+            msg = "NUM Set: PASS | Value = {}".format(value)
+            return True,msg
         else:
-            return False        
+            msg = "NUM Set: FAIL"
+            return False,msg        
 
     def set_scooch(self,interval=250,max_delta=5000,travel=150000,
                             min_delta=2500):
-        self.scs = '{},{},{},{}'.format(interval,max_delta,travel,min_delta)
         self.rs232.write_command('$PWETC,PC,,,,SCS,4,{},{},{},{}*'.format(interval,
                            max_delta,travel,min_delta))
         response = self.rs232.read_response()
@@ -231,9 +238,11 @@ class THETIS():
         user_set = [interval,max_delta,travel,min_delta]
         user_set = list(map(float,user_set))        
         if pro_set == user_set:
-            return True
+            msg = "SCS Set: PASS | Value = {},{},{},{}".format(interval,max_delta,travel,min_delta)
+            return True,msg
         else:
-            return False
+            msg = "SCS Set: FAIL"
+            return False,msg
         
     def set_slsf(self,value=1.45):
         value = float(value)
@@ -250,9 +259,11 @@ class THETIS():
         else:
             returned_val = float(re.findall(pattern,response).pop())
         if returned_val == value:
-            return True
+            msg = "SLSF Set: PASS | Value = {}".format(value)
+            return True,msg
         else:
-            return False   
+            msg = "SLSF Set: FAIL"
+            return False,msg   
         
     def set_battery_thresholds(self,primary=28.5,secondary=28.5):
         primary = float(primary)
@@ -262,51 +273,60 @@ class THETIS():
         self.rs232.write_command('$PWETC,PC,,,,BLV,2,{},{}*'.format(primary,secondary))
         response = self.rs232.read_response()
         if str(primary) in response and str(secondary) in response:
-            return True
+            msg = "BLV Set: PASS | Value = {},{}".format(primary,secondary)
+            return True,msg
         else:
-            return False
+            msg = "BLV Set: FAIL"
+            return False,msg
         
     def set_depth_offset(self,value=0.6):
         value = float(value)
-        self.do = value
         self.rs232.write_command('$PWETC,WC,,,,DO,1,{}*'.format(value))
         response = self.rs232.read_response()
+        if "WC OFF" in response:
+            self.set_winch_power("ON")
+            self.rs232.write_command('$PWETC,WC,,,,DO,1,{}*'.format(value))
+            response = self.rs232.read_response()
+            self.set_winch_power("OFF")            
         if 'DO,1,{}'.format(value) in response:
-            return True
+            msg = "DO Set: PASS | Value = {}".format(value)
+            return True,msg
         else:
-            return False
+            msg = "DO Set: FAIL"
+            return False,msg
         
     def set_gps_acquistion_after_profile(self,state="OFF"):
-        self.ggf = state
         if state == "OFF":
             self.rs232.write_command('$PWETC,PC,,,,GGF,1,0*')
         elif state == "ON":
             self.rs232.write_command('$PWETC,PC,,,,GGF,1,1*')
         response = self.rs232.read_response()
         if 'GGF,1,0' in response and state == "OFF":
-            return True
+            msg = "GGF Set: PASS | Value = {}".format(state)
+            return True,msg
         elif 'GGF,1,1' in response and state == "ON":
-            return True
+            msg = "GGF Set: PASS | Value = {}".format(state)
+            return True,msg
         else:
-            return False
-        if 'OFF' in response:
-            return True
-        else: 
-            return False
+            msg = "GGF Set: FAIL"
+            return False,msg
+
     
     def set_gps_power(self,state="OFF"):
-        self.gpsp = state
         if state == "OFF":
             self.rs232.write_command('$PWETC,PC,,,,GPSP,1,0*')
         elif state == "ON":
             self.rs232.write_command('$PWETC,PC,,,,GPSP,1,1*')
         response = self.rs232.read_response()
-        if 'GPSP,1,1' in response and state == "ON":
-            return True
-        elif 'GPSP,1,0' in response and state == "OFF":
-            return True
+        if 'ON' in response and state == "ON":
+            msg = "GPSP Set: PASS | Value = {}".format(state)
+            return True,msg
+        elif 'OFF' in response and state == "OFF":
+            msg = "GPSP Set: PASS | Value = {}".format(state)
+            return True,msg
         else:
-            return False
+            msg = "GPSP Set: FAIL"
+            return False,msg
     
     
     def get_battery_status(self,address): 
@@ -343,13 +363,14 @@ class THETIS():
     
     def set_radio_depth(self,value=1.0):
         value = float(value)
-        self.rd = value
         self.rs232.write_command('$PWETC,PC,,,,RD,1,{}*'.format(value))
         response = self.rs232.read_response()
         if 'RD,1,{}'.format(value) in response:
-            return True
+            msg = "RD Set: PASS | Value = {}".format(value)
+            return True,msg
         else:
-            return False
+            msg = "RD Set: FAIL"
+            return False,msg
             
         
     def host2pico(self,via='Q'):
@@ -417,7 +438,7 @@ class THETIS():
         response = self.rs232.read_response()
         tpattern =  'TOTAL,1,(.*?)\*'
         total = (int(re.findall(tpattern,response).pop()))/1000          
-        used = total - free       
+        used = total - free 
         return total,used,free
     
     def send_break(self):
@@ -429,8 +450,10 @@ class THETIS():
         self.rs232.write_command('$PWETC,PC,,,,ATMP,1,0*')  
         response = self.rs232.read_response()
         if "OFF" in response:
-            return True
+            msg = "ATMP Set: PASS | Value = {}".format("OFF")
+            return True,msg
         else:
+            msg = "ATMP Set: FAIL"
             return False
 
     def logging(self,state,listener='PC'):
@@ -623,7 +646,7 @@ class THETIS():
         if not isinstance(filenames,list):
             filenames = [filenames]     
         for filename in filenames:
-            print('\nStarting offload of {}.'.format(filename))
+            print('\nOffloading {}.'.format(filename),end='')
             if '.PPD' in filename:
                 full = filename.replace(filename[-1],'B')
                 handshake = 0.25
@@ -672,10 +695,11 @@ class THETIS():
             with open(filepath,'wb') as f:
                 for item in raw:
                     f.write(item)
+            f.close()
             print('Offloaded: {}'.format(filename))
             time.sleep(1)
             self.rs232.clear_buffers()
-            time.sleep(1)
+            time.sleep(3)
 
        
 #Still need to test.        

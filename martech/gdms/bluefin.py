@@ -1,9 +1,22 @@
 from martech.sercom import SERCOM
+import os
 import re
+import sys
 import time
 
-class BLUEFIN():    
-    def __init__(self,port):
+def main():
+    port = sys.argv[0]
+    baudrate = sys.argv[1]
+    bf = BATTERY(port,baudrate)
+    if bf.balance_test() is True:
+        bf.balance_battery()
+        
+    else:
+        bf.close_connection()
+
+
+class BATTERY():    
+    def __init__(self,port,baudrate=9600):
         """Instantiate a serial object on the specified port.
         @param port -- a system specific port given as a string.
         """
@@ -14,6 +27,16 @@ class BLUEFIN():
         self.stopbits = 1
         self.flowcontrol = 0
         self.timeout = 3          
+        
+        try:
+            if self.open_connection(baudrate) is True:
+                self.sn = self.get_battery_sn()
+                self.model = self.get_battery_model()
+                self.fw = self.get_fw_version()
+                self.device_sn = self.get_device_sn()
+        except:
+            msg = "Unable to connect to a battery on {} at {} bps."
+            raise ValueError(msg.format(port,baudrate))
     
     def open_connection(self,baudrate=9600):
         """Open a connection to the battery at a defined baudrate.
@@ -308,7 +331,7 @@ class BLUEFIN():
     def get_mode(self,address=0):
         """Get the battery mode.
         @param address -- a decimal value between 0-250
-        @return -- the batter mode as a single character string (m or s)
+        @return -- the battery mode as a single character string (m or s)
         """
         response = self.get_version_summary(address)
         pattern = '\$.*? .*? (.*?) .*? .*? .*? .*? .*? .*? \r\n' 
@@ -335,6 +358,7 @@ class BLUEFIN():
     
     def output_off(self,address=0):
         """Turn off the battery output.
+        This resets any existing errors.
         @param address -- a decimal value.
         """
         address = self._format_address(address)
@@ -346,9 +370,43 @@ class BLUEFIN():
             battery before issuing this command.
         @param address -- a decimal value.
         """
-        address = self._format_address(address)
-        self.rs485.write_command('#{}bd'.format(address),EOL='\r\n')                          
+        user_response = input("Is the battery under load? [Y/N] :")
+        if user_response.upper() != 'Y':
+            msg = 'Exiting discharge mode attempt because the battery is not under load.'
+            raise ValueError(msg)
+        else:
+            address = self._format_address(address)
+            self.rs485.write_command('#{}bd'.format(address),EOL='\r\n')                          
                      
+    def discharge_cell(self,cell,address=0):
+        address = self._format_address(address)
+        self.rs485.write_command('#{}b{}'.format(address,cell),EOL='/r/n')
+        response = self.rs485.read_response()
+        if '1' in response:
+            return True
+        elif '0' in response:
+            return False
+
+    def get_cell_voltages(self,address=0):
+        address = self._format_address(address)
+        self.rs485.write_command('#{}q1'.format(address),EOL='/r/n')
+        response = self.rs485.read_response()     
+        #Need to figure out pattern.
+        
+        
+#-----------------------------Auto Balance----------------------------------#   
+    def balance_battery(self,address=0,timeout=86400):
+        address = self._format_address(address)
+        start = int(time.time())
+        
+        
+        
+        
+        
+        
+        
+
+
                                  
 #-----------------------------GDMS-BF Tests----------------------------------#   
     def balance_test(self,address=0):
@@ -361,9 +419,12 @@ class BLUEFIN():
         maxcell = self.get_max_cell_voltage(address)
         if abs(maxcell-mincell) > 0.1:
             msg = 'Recommend balancing battery.'
+            print(msg)
+            return True
         else:
             msg = 'Battery does not need to be balanced.'
-        return msg
+            print(msg)
+            return False
 
     def sleep_test(self,address=0,length=10):
         """Test the sleep functionality of the battery.
