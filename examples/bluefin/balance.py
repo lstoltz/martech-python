@@ -1,6 +1,6 @@
 '''
 This is a standalone script intended for deployment on a Raspberry Pi as a 
-command line utility.
+command line utility. It also works on any system that has Python.
 
 Example Usage: 
     python3 /home/pi/martech-python/examples/bluefin/balance.py /dev/ttyUSB0 2
@@ -46,22 +46,24 @@ def main():
         start = time.time()
         while True:
             loop_start = time.time()
-            if sbm.get_temperature() > 40: #If the battery gets too hot, stop.
+            temp = sbm.get_temperature()
+            if temp > 40: #If the battery gets too hot, stop.
                 for i in range(3):
                     sbm.off()
                 exit()
-            elif time.time() - start > 60*60*24: #If two days pass, stop.
+            elif time.time() - start > 60*60*24*2: #If two days pass, stop.
                 for i in range(3):
                     sbm.off()
                 exit()
             else:
                 now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                print('Battery Temperature: {} degC'.format(temp))
                 sbm.balance_non_min_cells()
                 log.write("{}".format(now))
                 log.write(",")
                 log.write("{}".format(sbm.get_cell_voltages()))
                 log.write(",")
-                log.write("{}".format(sbm.get_temperature()))
+                log.write("{}".format(temp))
                 log.write("\n")
                 print('Checking balanced state...',end='')
                 if sbm.is_balanced(0.030):
@@ -176,7 +178,7 @@ class SBM():
         return address
     
     def get_summary(self):
-        """Get the battery summary info of the battery at the givenn address.
+        """Get the battery summary info of the battery at the given address.
         @return -- a single line summary string.
         """
         self.rs485.write_command('#{}q0'.format(self.address),EOL='\r\n')
@@ -471,6 +473,7 @@ class SBM():
                         print('Reason: Watchdog timeout. Resetting.')
                     self.off()
                     time.sleep(1)
+                    now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
                     self.balance_cell(i)
                     print(now,end='')
                     print(', ',end='')
@@ -478,11 +481,10 @@ class SBM():
                     time.sleep(1)
                     continue
     
-    
     def _check_all_cells(self,voltages):
         '''Check if all cells are within 30mV of the minimum cell.'''
         for voltage in voltages:
-            if voltage < min(voltage) - 0.030 or voltage > min(voltage) + 0.30:
+            if voltage < min(voltages) - 0.030 or voltage > min(voltages) + 0.030:
                 return False
         return True
             
