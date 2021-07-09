@@ -1,0 +1,78 @@
+from datetime import datetime,timezone
+from martech.gdms.bluefin import SBM
+import martech.helpers as mh
+import sys
+import time
+
+port = sys.argv[1]
+try:
+    address = int(sys.argv[2])
+except:
+    address = 0
+
+try:
+    delta = float(sys.argv[3])
+except:
+    delta = 0.030
+
+sbm = SBM(port,address)
+if sbm.open_connection() is True:
+    sn = sbm.get_battery_sn()
+    print("Connected to SBM {}!".format(sn))
+else:
+    exit()
+
+if sbm.is_balanced(delta=delta):
+    print('Battery already appears to be well balanced. Exiting utility.')
+    for i in range(3):
+        sbm.off()
+        time.sleep(0.5)
+    exit()
+
+uid = mh.get_uid()
+today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+log_location = "/home/{}/martech-python/operational/bluefin/log/SBM{}_{}.txt".format(uid,sn,today)
+log = open("{}".format(log_location),'a')
+log.write("Bluefin 1.5kWh {} Balance Log\n".format(sn))
+log.write("\n\n\n")
+log.write("datetime,voltage_array,temperature\n")
+start = time.monotonic()
+while True:
+    lstart = time.monotonic()
+    temp = sbm.get_temperature()
+    print('Battery Temperature: {} degC'.format(temp))
+    if temp > 42:
+        print("Battery temperature exceeded 42 degrees. Wait for it to cool down and apply a fan for next attempt. Exiting utility.")
+        for i in range(3):
+            time.sleep(0.5)
+            sbm.off()
+        exit()
+    if time.monotonic() - start > 60*60*24*14:
+        print("Balancing program 14 day timeout. It shouldn't take this long to balance a battery. Something is weird and you should probably contact GDMS.")
+        for i in range(3):
+            time.sleep(0.5)
+            sbm.off()
+        exit()
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    print('Balancing cells...')
+    sbm.balance_non_min_cells()
+    print('Checking balanced state...', end = '')
+    time.sleep(1)
+    if sbm.is_balanced(delta):
+        print('battery is balanced. Exiting utility.')
+        for i in range(3):
+            time.sleep(0.5)
+            sbm.off()
+        exit()
+    else:
+        print('battery is not balanced.') 
+    log.write("{},{},{}\n".format(now,sbm.get_cell_voltages(),temp)) 
+    lstop = time.monotonic()
+    wait = int(60-(lstop-lstart))
+    if wait <= 0:
+        continue
+    else:
+        print('Waiting {} seconds before checking again.'.format(wait))
+        time.sleep(wait)
+        
+log.close()

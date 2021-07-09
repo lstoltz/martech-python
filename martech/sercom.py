@@ -12,6 +12,7 @@ import time
 
 class SERCOM():
     def __init__(self):
+        '''Set up a blank canvas at instantiation.'''
         self.sercom = serial.Serial()
                 
     def connect(self,port,baudrate,
