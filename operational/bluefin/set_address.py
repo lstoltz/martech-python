@@ -13,4 +13,3 @@ _set = sbm.get_address()
 print('Battery address changed to {}.'.format(_set))
 if sbm.close_connection() is True:
     print('Battery address change successful')
-

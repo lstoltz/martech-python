@@ -16,12 +16,13 @@ except:
 sbm = SBM(port,address)
 sn = sbm.get_battery_sn()
 print("Connected to SBM {}!".format(sn))
-
-if all(V <=3.7 for V in sbm.get_voltages()):
+print("Checking to see if all cells are near {}V.".format(vlim))
+if all(V <=3.7 for V in sbm.get_cell_voltages()):
     print('Battery needs charging. Charge so that each cell is at 3.8V before storage.')
     exit()
 
 while True:
+    start = time.monotonic()
     voltages = sbm.get_cell_voltages()
     if all(v <= vlim for v in voltages):
         print("All cells are below {}V.".format(vlim))
@@ -30,7 +31,7 @@ while True:
         sbm.off()
         time.sleep(0.5)
         exit()
-    for i in range(voltages):
+    for i in range(len(voltages)):
         if voltages[i] >= vlim:
             now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
             print(now,end='')
@@ -46,9 +47,14 @@ while True:
             sbm.balance_cell(i)
             print(now,end='')
             print(', ',end='')
-            print('Cell #{} discharging.'.format(i))            
+            print('Cell #{} discharging.'.format(i))      
         else:
             continue
-        
+    voltages = sbm.get_cell_voltages()
+    print("Voltages after discharge: {}".format(voltages))
+    stop = time.monotonic()
+    wait = 60 - int(stop-start)
+    print('Waiting for {} seconds before discharging cells again.'.format(wait))
+    time.sleep(wait)
 
 

@@ -186,7 +186,7 @@ class SBM():
         @return -- the minimum cell voltage as a float value.
         """
         summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? .*? (.*?) .*? . .*?  .*? . . . .*?\r\n'
+        pattern = '\$.... .. .*?  .*?  .*? (.*?) .*? . .*?  .*? . . . .*?\r\n'
         minv = float(re.findall(pattern,summary).pop())
         return minv
     
@@ -195,7 +195,7 @@ class SBM():
         @return -- the maximum cell voltage as a float value.
         """        
         summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? .*? .*? (.*?) . .*?  .*? . . . .*?\r\n'
+        pattern = '\$.... .. .*?  .*?  .*? .*? (.*?) . .*?  .*? . . . .*?\r\n'
         maxv = float(re.findall(pattern,summary).pop())
         return maxv        
         
