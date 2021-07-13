@@ -17,7 +17,7 @@ sbm = SBM(port,address)
 sn = sbm.get_battery_sn()
 print("Connected to SBM {}!".format(sn))
 
-if all(V <=3.7 for V in sbm.get_voltages()):
+if all(V <=3.7 for V in sbm.get_cell_voltages()):
     print('Battery needs charging. Charge so that each cell is at 3.8V before storage.')
     exit()
 
@@ -30,7 +30,7 @@ while True:
         sbm.off()
         time.sleep(0.5)
         exit()
-    for i in range(voltages):
+    for i in range(len(voltages)):
         if voltages[i] >= vlim:
             now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
             print(now,end='')
