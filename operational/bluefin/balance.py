@@ -16,12 +16,9 @@ except:
     delta = 0.030
 
 sbm = SBM(port,address)
-if sbm.open_connection() is True:
-    sn = sbm.get_battery_sn()
-    print("Connected to SBM {}!".format(sn))
-else:
-    exit()
 
+sn = sbm.get_battery_sn()
+print("Connected to SBM {}!".format(sn))
 if sbm.is_balanced(delta=delta):
     print('Battery already appears to be well balanced. Exiting utility.')
     for i in range(3):
@@ -43,15 +40,17 @@ while True:
     print('Battery Temperature: {} degC'.format(temp))
     if temp > 42:
         print("Battery temperature exceeded 42 degrees. Wait for it to cool down and apply a fan for next attempt. Exiting utility.")
-        for i in range(3):
-            time.sleep(0.5)
-            sbm.off()
+        time.sleep(0.5)
+        log.close()
+        sbm.off()
+        sbm.close_connection()
         exit()
     if time.monotonic() - start > 60*60*24*14:
         print("Balancing program 14 day timeout. It shouldn't take this long to balance a battery. Something is weird and you should probably contact GDMS.")
-        for i in range(3):
-            time.sleep(0.5)
-            sbm.off()
+        time.sleep(0.5)
+        log.close()
+        sbm.off()
+        sbm.close_connection()
         exit()
     now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     print('Balancing cells...')
@@ -60,9 +59,10 @@ while True:
     time.sleep(1)
     if sbm.is_balanced(delta):
         print('battery is balanced. Exiting utility.')
-        for i in range(3):
-            time.sleep(0.5)
-            sbm.off()
+        time.sleep(0.5)
+        log.close()
+        sbm.off()
+        sbm.close_connection()
         exit()
     else:
         print('battery is not balanced.') 
@@ -75,4 +75,3 @@ while True:
         print('Waiting {} seconds before checking again.'.format(wait))
         time.sleep(wait)
         
-log.close()

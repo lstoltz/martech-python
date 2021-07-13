@@ -14,11 +14,8 @@ except:
     vlim = 3.81
 
 sbm = SBM(port,address)
-if sbm.open_connection() is True:
-    sn = sbm.get_battery_sn()
-    print("Connected to SBM {}!".format(sn))
-else:
-    exit()
+sn = sbm.get_battery_sn()
+print("Connected to SBM {}!".format(sn))
 
 if all(V <=3.7 for V in sbm.get_voltages()):
     print('Battery needs charging. Charge so that each cell is at 3.8V before storage.')
