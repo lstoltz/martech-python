@@ -110,8 +110,8 @@ class SBM():
         """Get the battery state and print a message.
         @return -- a character indicating the battery state. See BF manual.
         """
-        summary = self.get_summary()
-        pattern = '\$.... (.). .*?  .*? .*? .*? .*? . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... (.). .*? .*? .*? .*? .*? . .*? .*? . . . .*?'
         state = re.findall(pattern,summary).pop()
         if state == 'f':
             msg = 'OFF'
@@ -127,8 +127,8 @@ class SBM():
         """Get the battery error state and print a message.
         @return -- a character indicating the error state. See BF manual.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .(.) .*?  .*? .*? .*? .*? . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .(.) .*? .*? .*? .*? .*? . .*? .*? . . . .*?'
         error = re.findall(pattern,summary).pop()
         if error == '-':
             msg = 'No Error'
@@ -158,8 +158,8 @@ class SBM():
         """Get the battery voltage
         @return -- a float value representing the overall battery voltage.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. (.*?)  .*? .*? .*? .*? . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. (.*?) .*? .*? .*? .*? . .*? .*? . . . .*?'
         voltage = float(re.findall(pattern,summary).pop())
         return voltage
         
@@ -167,8 +167,8 @@ class SBM():
         """Get the battery current.
         @return -- a float value representing the battery current.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  (.*?) .*? .*? .*? . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? (.*?) .*? .*? .*? . .*? .*? . . . .*?'
         current = float(re.findall(pattern,summary).pop())
         return current
 
@@ -176,8 +176,8 @@ class SBM():
         """Get the battery oil temperature.
         @return -- a float value representing the temperature of the oil.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? (.*?) .*? .*? . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? (.*?) .*? .*? . .*? .*? . . . .*?'
         temperature = float(re.findall(pattern,summary).pop())
         return temperature
     
@@ -185,8 +185,8 @@ class SBM():
         """Get the minimum cell voltage.
         @return -- the minimum cell voltage as a float value.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*?  .*? (.*?) .*? . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? .*? (.*?) .*? . .*? .*? . . . .*?'
         minv = float(re.findall(pattern,summary).pop())
         return minv
     
@@ -194,8 +194,8 @@ class SBM():
         """Get the maximum cell voltage.
         @return -- the maximum cell voltage as a float value.
         """        
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*?  .*? .*? (.*?) . .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? .*? .*? (.*?) . .*? .*? . . . .*?'
         maxv = float(re.findall(pattern,summary).pop())
         return maxv        
         
@@ -204,8 +204,8 @@ class SBM():
         @return -- True if water intrusion is detected. False if not water
             intrusion is detected.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? .*? .*? .*? (.) .*?  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? .*? .*? .*? (.) .*? .*? . . . .*?'
         water = int(re.findall(pattern,summary).pop())
         if water == 0:
             return False
@@ -216,8 +216,8 @@ class SBM():
         """Get the battery wattage.
         @return -- the wattage as a float value.
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? .*? .*? .*? . (.*?)  .*? . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? .*? .*? .*? . (.*?) .*? . . . .*?'
         watts = float(re.findall(pattern,summary).pop())        
         return watts
     
@@ -226,8 +226,8 @@ class SBM():
         @return -- a three element list of strings consisting 
             of [hours, minutes,seconds].
         """
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? .*? .*? .*? . .*?  (.*?) . . . .*?\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? .*? .*? .*? . .*? (.*?) . . . .*?'
         runtime = re.findall(pattern,summary).pop()  
         hms = runtime.split(':')
         msg = 'Battery has been enabled for {}h, {}m, and {}s.'
@@ -238,8 +238,8 @@ class SBM():
         '''Get the number of seconds until the battery goes to sleep.
         @return -- the number of seconds until the battery goes to sleep.
         '''
-        summary = self.get_summary()
-        pattern = '\$.... .. .*?  .*? .*? .*? .*? . .*?  .*? . . .( .*?)\r\n'
+        summary = " ".join(self.get_summary().split())
+        pattern = '\$.... .. .*? .*? .*? .*? .*? . .*? .*? . . . (.*?)'
         timer = int(re.findall(pattern,summary).pop())        
         if timer == 0:
             print('Sleep timer is disabled.')
